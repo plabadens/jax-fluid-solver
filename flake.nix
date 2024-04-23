@@ -40,6 +40,8 @@
             if [ -f $ACTIVATE ]; then
               source $ACTIVATE
             fi
+
+            export JAX_SKIP_CUDA_CONSTRAINTS_CHECK=1
           '';
         };
       in

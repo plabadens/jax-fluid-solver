@@ -1,0 +1,14 @@
+# FILEPATH: /home/pierre/Documents/Fysik/Y4B34_Thesis/jax-fluid-solver/pyproject.toml
+[project]
+authors = [{ name = "Pierre Labadens", email = "labadens.pierre@gmail.com" }]
+name = "jax-fluid-solver"
+version = "0.1.0"
+description = "A simple fluid solver using JAX"
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+addopts = ["-v", "--import-mode=importlib"]

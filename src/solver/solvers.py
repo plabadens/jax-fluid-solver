@@ -11,8 +11,18 @@ from solver.hydro import PrimitiveVariable, ConservativeVariable
 def local_lax_friedrichs(
     left: PrimitiveVariable, right: PrimitiveVariable, adiabatic_index: float
 ) -> ConservativeVariable:
-    """Local Lax-Friedrichs Riemann solver"""
-    cs_left = jnp.nan_to_num(jnp.sqrt(adiabatic_index * left.pressure / left.density))
+    """
+    Local Lax-Friedrichs Riemann solver.
+
+    Args:
+        left (PrimitiveVariable): The left state.
+        right (PrimitiveVariable): The right state.
+        adiabatic_index (float): The adiabatic index (gamma).
+
+    Returns:
+        ConservativeVariable: The flux computed using the Local Lax-Friedrichs Riemann solver.
+    """
+    cs_left = jnp.sqrt(adiabatic_index * left.pressure / left.density)
     cs_right = jnp.nan_to_num(
         jnp.sqrt(adiabatic_index * right.pressure / right.density)
     )

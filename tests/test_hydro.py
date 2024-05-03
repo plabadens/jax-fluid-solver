@@ -1,9 +1,6 @@
-import jax
 import jax.numpy as jnp
-import pytest
 
 from solver.hydro import (
-    HydroState,
     PrimitiveVariable,
     ConservativeVariable,
     hydrodynamic_flux,

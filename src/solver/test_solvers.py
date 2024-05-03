@@ -1,9 +1,6 @@
 import jax.numpy as jnp
 
-from solver.hydro import (
-    PrimitiveVariable,
-)
-from solver.solvers import local_lax_friedrichs
+from solver.solvers import local_lax_friedrichs, PrimitiveVariable
 
 
 def test_local_lax_friedrichs():

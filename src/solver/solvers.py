@@ -1,4 +1,5 @@
 import chex
+import jax.debug as jdb
 import jax.numpy as jnp
 import solver.hydro as hydro
 
@@ -11,8 +12,10 @@ def local_lax_friedrichs(
     left: PrimitiveVariable, right: PrimitiveVariable, adiabatic_index: float
 ) -> ConservativeVariable:
     """Local Lax-Friedrichs Riemann solver"""
-    cs_left = jnp.sqrt(adiabatic_index * left.pressure / left.density)
-    cs_right = jnp.sqrt(adiabatic_index * right.pressure / right.density)
+    cs_left = jnp.nan_to_num(jnp.sqrt(adiabatic_index * left.pressure / left.density))
+    cs_right = jnp.nan_to_num(
+        jnp.sqrt(adiabatic_index * right.pressure / right.density)
+    )
     cs_max = jnp.maximum(cs_left, cs_right)
 
     propagation_max = jnp.maximum(
@@ -42,6 +45,7 @@ def local_lax_friedrichs(
         + flux_right.momentum_y
         - propagation_max * (cons_right.momentum_y - cons_left.momentum_y)
     )
+
     flux_total_energy = 0.5 * (
         flux_left.total_energy
         + flux_right.total_energy

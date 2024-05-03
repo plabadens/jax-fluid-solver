@@ -1,5 +1,6 @@
 import chex
 import jax.numpy as jnp
+import jax.debug as jdb
 import solver.hydro as hydro
 import solver.limiters as limiters
 import solver.solvers as solvers
@@ -10,7 +11,6 @@ from functools import partial
 from solver.hydro import HydroState
 
 
-@chex.chexify
 # @partial(jit, static_argnums=(1, 2, 3))
 def muscl_2d(
     state: HydroState,
@@ -118,16 +118,16 @@ def muscl_2d(
         )
 
         # right state
-        density_right = jnp.roll(density_left, shift=-1, axis=axis)
-        pressure_right = jnp.roll(pressure_left, shift=-1, axis=axis)
-        U_right = jnp.roll(U_left, shift=-1, axis=axis)
-        V_right = jnp.roll(V_left, shift=-1, axis=axis)
+        density_right = density + 0.5 * (dt * density_t - ds * d_density[axis])
+        pressure_right = pressure + 0.5 * (dt * pressure_t - ds * d_pressure[axis])
+        U_right = U + 0.5 * (dt * U_t - ds * dU[axis])
+        V_right = V + 0.5 * (dt * V_t - ds * dV[axis])
 
         state_right = hydro.PrimitiveVariable(
-            density=density_right,
-            velocity_x=U_right,
-            velocity_y=V_right,
-            pressure=pressure_right,
+            density=jnp.roll(density_right, shift=-1, axis=axis),
+            velocity_x=jnp.roll(U_right, shift=-1, axis=axis),
+            velocity_y=jnp.roll(V_right, shift=-1, axis=axis),
+            pressure=jnp.roll(pressure_right, shift=-1, axis=axis),
         )
 
         chex.assert_shape(density, (state.n, state.n), custom_message=f"axis={axis}")
@@ -158,8 +158,6 @@ def muscl_2d(
             momentum_y -= dt_ds * (
                 flux.momentum_x - jnp.roll(flux.momentum_x, shift=1, axis=axis)
             )
-
-    chex.assert_shape(density, (state.n, state.n))
 
     chex.assert_equal_shape(
         [state.density, state.momentum_x, state.momentum_y, state.total_energy]

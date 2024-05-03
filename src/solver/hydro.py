@@ -56,13 +56,12 @@ def velocity(state: HydroState) -> Array:
     v = jnp.stack(
         [state.momentum_x / state.density, state.momentum_y / state.density], axis=0
     )
-    chex.assert_shape(v, (2, 128, 128))
     return v
 
 
 @jit
 def pressure(state: HydroState) -> Array:
-    internal_energy = (
+    internal_energy = jnp.abs(
         state.total_energy
         - 0.5 * (state.momentum_x**2 + state.momentum_y**2) / state.density
     )

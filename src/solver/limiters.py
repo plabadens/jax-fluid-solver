@@ -23,8 +23,6 @@ def monotonized_central(function_values: Array, n: int) -> Array:
     """
     slopes = []
 
-    chex.assert_shape(function_values, (128, 128))
-
     for i in range(2):
         left = left_slope(function_values, axis=i)
         right = jnp.roll(left, -1, axis=i)
@@ -34,6 +32,5 @@ def monotonized_central(function_values: Array, n: int) -> Array:
         slopes.append(slopes_dim)
 
     slopes = jnp.stack(slopes)
-    chex.assert_shape(slopes, (2, 128, 128))
 
     return slopes

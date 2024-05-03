@@ -1,13 +1,10 @@
 import chex
 import jax.numpy as jnp
-import jax.debug as jdb
 import solver.hydro as hydro
 import solver.limiters as limiters
 import solver.solvers as solvers
 
-from jax import Array, jit
 from typing import Callable
-from functools import partial
 from solver.hydro import HydroState
 
 
@@ -34,12 +31,12 @@ def muscl_2d(
 
     # primitive variables
     density = state.density
-    momentum_x = state.momentum_x
+    momentum_u = state.momentum_x
     momentum_y = state.momentum_y
     total_energy = state.total_energy
 
     chex.assert_equal_shape(
-        [density, momentum_x, momentum_y, total_energy],
+        [density, momentum_u, momentum_y, total_energy],
         custom_message="Initial state shape mismatch",
     )
     chex.assert_shape(density, (state.n, state.n))
@@ -145,14 +142,14 @@ def muscl_2d(
         )
 
         if axis == 0:
-            momentum_x -= dt_ds * (
+            momentum_u -= dt_ds * (
                 flux.momentum_x - jnp.roll(flux.momentum_x, shift=1, axis=axis)
             )
             momentum_y -= dt_ds * (
                 flux.momentum_y - jnp.roll(flux.momentum_y, shift=1, axis=axis)
             )
         else:
-            momentum_x -= dt_ds * (
+            momentum_u -= dt_ds * (
                 flux.momentum_y - jnp.roll(flux.momentum_y, shift=1, axis=axis)
             )
             momentum_y -= dt_ds * (
@@ -171,7 +168,7 @@ def muscl_2d(
         x=state.x,
         y=state.y,
         density=density,
-        momentum_x=momentum_x,
+        momentum_x=momentum_u,
         momentum_y=momentum_y,
         total_energy=total_energy,
         t=state.t + dt,

@@ -1,12 +1,8 @@
-import chex
 import jax.numpy as jnp
 
-from jax import Array, jit, debug
-from jax.typing import ArrayLike
+from jax import Array, jit
 from chex import dataclass
-from typing import Callable
-
-from functools import partial
+from typing import Callable, Optional
 
 
 @dataclass
@@ -28,7 +24,7 @@ class HydroState:
 
 
 def create_hydro_state(
-    n: int, Lbox: float, func: Callable = None, adiabatic_index: float = 1.4
+    n: int, Lbox: float, func: Optional[Callable] = None, adiabatic_index: float = 1.4
 ) -> HydroState:
     x = jnp.linspace(-Lbox * 0.5, Lbox * 0.5, num=n, endpoint=False) + 0.5 * Lbox / n
     y = x
@@ -73,7 +69,7 @@ def temperature(state: HydroState) -> Array:
     return pressure(state) / state.density
 
 
-def courant_condition(state: HydroState, courant_number: float) -> float:
+def courant_condition(state: HydroState, courant_number: float) -> Array:
     v = velocity(state)
     velocity_magnitude = jnp.sqrt(v[0] ** 2 + v[1] ** 2)
     sound_speed = jnp.sqrt(state.adiabatic_index * pressure(state) / state.density)

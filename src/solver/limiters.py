@@ -1,4 +1,3 @@
-import chex
 import jax.numpy as jnp
 
 from jax import Array, jit

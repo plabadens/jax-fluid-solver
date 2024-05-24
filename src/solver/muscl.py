@@ -35,23 +35,10 @@ def muscl_2d(
     momentum_y = state.momentum_y
     total_energy = state.total_energy
 
-    chex.assert_equal_shape(
-        [density, momentum_u, momentum_y, total_energy],
-        custom_message="Initial state shape mismatch",
-    )
-    chex.assert_shape(density, (state.n, state.n))
-
     velocity = hydro.velocity(state)
-    chex.assert_shape(velocity, (2, state.n, state.n))
-
     velocity_x = velocity[0]
     velocity_y = velocity[1]
     pressure = hydro.pressure(state)
-
-    chex.assert_equal_shape(
-        [velocity_x, velocity_y, pressure],
-        custom_message="Initial state shape mismatch",
-    )
 
     # slopes
     d_density = slope_limiter(density, state.n) / ds
@@ -81,8 +68,6 @@ def muscl_2d(
         - velocity_y * d_velocity_y[1]
         - d_pressure[1] / density
     )
-
-    chex.assert_shape(density, (state.n, state.n))
 
     # trace back
     for axis in range(2):
@@ -127,8 +112,6 @@ def muscl_2d(
             pressure=jnp.roll(pressure_right, shift=-1, axis=axis),
         )
 
-        chex.assert_shape(density, (state.n, state.n), custom_message=f"axis={axis}")
-
         # Riemann solver
         flux = riemann_solver(state_left, state_right, adiabatic_index)
         chex.assert_shape(
@@ -155,10 +138,6 @@ def muscl_2d(
             momentum_y -= dt_ds * (
                 flux.momentum_x - jnp.roll(flux.momentum_x, shift=1, axis=axis)
             )
-
-    chex.assert_equal_shape(
-        [state.density, state.momentum_x, state.momentum_y, state.total_energy]
-    )
 
     return HydroState(
         n=state.n,

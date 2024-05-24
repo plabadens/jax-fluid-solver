@@ -18,7 +18,7 @@
           virtualenv
           wheel
         ]);
-        cudaPkgs = pkgs.cudaPackages_11;
+        cudaPkgs = pkgs.cudaPackages_12;
         FHSWithCuda = pkgs.buildFHSUserEnv {
           name = "cuda-env";
           targetPkgs = p: (with p; [

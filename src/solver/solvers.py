@@ -22,7 +22,9 @@ def local_lax_friedrichs(
     Returns:
         ConservativeVariable: The flux computed using the Local Lax-Friedrichs Riemann solver.
     """
-    cs_left = jnp.sqrt(adiabatic_index * left.pressure / left.density)
+    cs_left = jnp.nan_to_num(
+        jnp.sqrt(adiabatic_index * left.pressure / left.density)
+    )
     cs_right = jnp.nan_to_num(
         jnp.sqrt(adiabatic_index * right.pressure / right.density)
     )

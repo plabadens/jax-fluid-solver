@@ -114,9 +114,6 @@ def muscl_2d(
 
         # Riemann solver
         flux = riemann_solver(state_left, state_right, adiabatic_index)
-        chex.assert_shape(
-            flux.density, (state.n, state.n), custom_message=f"axis={axis}"
-        )
 
         # update
         density -= dt_ds * (flux.density - jnp.roll(flux.density, shift=1, axis=axis))

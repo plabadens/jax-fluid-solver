@@ -6,12 +6,15 @@ import solver.solvers as solvers
 
 from typing import Callable
 from solver.hydro import HydroState
+from functools import partial
+from jax import jit
 
 
-# @partial(jit, static_argnums=(1, 2, 3))
+@partial(jit, static_argnames=("enable_dye", "slope_limiter", "riemann_solver"))
 def muscl_2d(
     state: HydroState,
     dt: float,
+    enable_dye: bool = False,
     slope_limiter: Callable = limiters.monotonized_central,
     riemann_solver: Callable = solvers.local_lax_friedrichs,
 ) -> HydroState:
@@ -26,7 +29,6 @@ def muscl_2d(
     Returns:
         Updated HydroState dataclass
     """
-    enable_dye = state.dye_concentration is not None
     ds = state.ds
     dt_ds = dt / ds
 
@@ -45,13 +47,13 @@ def muscl_2d(
     pressure = hydro.pressure(state)
 
     # slopes
-    d_density = slope_limiter(density, state.n) / ds
-    d_pressure = slope_limiter(pressure, state.n) / ds
-    d_velocity_x = slope_limiter(velocity_x, state.n) / ds
-    d_velocity_y = slope_limiter(velocity_y, state.n) / ds
+    d_density = slope_limiter(density) / ds
+    d_pressure = slope_limiter(pressure) / ds
+    d_velocity_x = slope_limiter(velocity_x) / ds
+    d_velocity_y = slope_limiter(velocity_y) / ds
     d_velocity = jnp.stack([d_velocity_x, d_velocity_y])
     if enable_dye:
-        d_dye_density = slope_limiter(dye_density, state.n) / ds
+        d_dye_density = slope_limiter(dye_density) / ds
 
     # trace forward
     divergence = d_velocity[0, 0] + d_velocity[1, 1]

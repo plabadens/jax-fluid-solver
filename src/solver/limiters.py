@@ -9,8 +9,8 @@ def left_slope(function_values: Array, axis: int) -> Array:
     return function_values - jnp.roll(function_values, 1, axis)
 
 
-@partial(jit, static_argnums=(1))
-def monotonized_central(function_values: Array, n: int) -> Array:
+@jit
+def monotonized_central(function_values: Array) -> Array:
     """Monotonized central slope limiter
 
     Args:

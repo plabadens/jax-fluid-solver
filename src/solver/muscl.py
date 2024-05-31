@@ -13,7 +13,7 @@ from jax import jit
 @partial(jit, static_argnames=("enable_dye", "slope_limiter", "riemann_solver"))
 def muscl_2d(
     state: HydroState,
-    dt: float,
+    courant: float,
     enable_dye: bool = False,
     slope_limiter: Callable = limiters.monotonized_central,
     riemann_solver: Callable = solvers.local_lax_friedrichs,
@@ -29,6 +29,7 @@ def muscl_2d(
     Returns:
         Updated HydroState dataclass
     """
+    dt = hydro.courant_condition(state, courant)
     ds = state.ds
     dt_ds = dt / ds
 

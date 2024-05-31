@@ -1,4 +1,5 @@
 import pickle
+import lzma
 import jax.numpy as jnp
 
 from jax import Array, jit
@@ -71,6 +72,7 @@ def temperature(state: HydroState) -> Array:
     return pressure(state) / state.density
 
 
+@jit
 def courant_condition(state: HydroState, courant_number: float) -> Array:
     v = velocity(state)
     velocity_magnitude = jnp.sqrt(v[0] ** 2 + v[1] ** 2)
@@ -133,7 +135,7 @@ def hydrodynamic_flux(
 
 def save_state(state: HydroState, filename: str) -> None:
     """Save the hydro state to a file"""
-    with open(filename, "wb") as f:
+    with lzma.open(filename, "wb") as f:
         pickle.dump(state, f)
 
 

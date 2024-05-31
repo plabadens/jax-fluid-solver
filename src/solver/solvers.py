@@ -22,9 +22,7 @@ def local_lax_friedrichs(
     Returns:
         ConservativeVariable: The flux computed using the Local Lax-Friedrichs Riemann solver.
     """
-    cs_left = jnp.nan_to_num(
-        jnp.sqrt(adiabatic_index * left.pressure / left.density)
-    )
+    cs_left = jnp.nan_to_num(jnp.sqrt(adiabatic_index * left.pressure / left.density))
     cs_right = jnp.nan_to_num(
         jnp.sqrt(adiabatic_index * right.pressure / right.density)
     )
@@ -64,8 +62,18 @@ def local_lax_friedrichs(
         - propagation_max * (cons_right.total_energy - cons_left.total_energy)
     )
 
+    if left.dye_density is not None and right.dye_density is not None:
+        flux_dye_density = 0.5 * (
+            flux_left.dye_density
+            + flux_right.dye_density
+            - propagation_max * (cons_right.dye_density - cons_left.dye_density)
+        )
+    else:
+        flux_dye_density = None
+
     return ConservativeVariable(
         density=flux_density,
+        dye_density=flux_dye_density,
         momentum_x=flux_momentum_x,
         momentum_y=flux_momentum_y,
         total_energy=flux_total_energy,

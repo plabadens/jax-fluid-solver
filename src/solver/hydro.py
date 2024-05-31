@@ -21,6 +21,7 @@ class HydroState:
     it: int = 0
     adiabatic_index: float = 1.4
     sound_speed: float = jnp.nan
+    dye_concentration: Optional[Array] = None
 
 
 def create_hydro_state(
@@ -83,6 +84,7 @@ class PrimitiveVariable:
     velocity_x: Array
     velocity_y: Array
     pressure: Array
+    dye_density: Optional[Array] = None
 
 
 @dataclass
@@ -91,6 +93,7 @@ class ConservativeVariable:
     momentum_x: Array
     momentum_y: Array
     total_energy: Array
+    dye_density: Optional[Array] = None
 
 
 @jit
@@ -103,6 +106,7 @@ def primitive_to_conservative(
 
     return ConservativeVariable(
         density=variable.density,
+        dye_density=variable.dye_density,
         momentum_x=variable.density * variable.velocity_x,
         momentum_y=variable.density * variable.velocity_y,
         total_energy=total_energy,
@@ -117,6 +121,7 @@ def hydrodynamic_flux(
 ) -> ConservativeVariable:
     return ConservativeVariable(
         density=conservative.momentum_x,
+        dye_density=conservative.momentum_x,
         momentum_x=conservative.momentum_x * primitive.velocity_x + primitive.pressure,
         momentum_y=conservative.momentum_y * primitive.velocity_x,
         total_energy=(

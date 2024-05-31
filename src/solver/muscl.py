@@ -26,6 +26,7 @@ def muscl_2d(
     Returns:
         Updated HydroState dataclass
     """
+    enable_dye = state.dye_concentration is not None
     ds = state.ds
     dt_ds = dt / ds
 
@@ -34,6 +35,9 @@ def muscl_2d(
     momentum_u = state.momentum_x
     momentum_y = state.momentum_y
     total_energy = state.total_energy
+
+    if enable_dye:
+        dye_density = state.dye_concentration * state.density
 
     velocity = hydro.velocity(state)
     velocity_x = velocity[0]
@@ -46,6 +50,8 @@ def muscl_2d(
     d_velocity_x = slope_limiter(velocity_x, state.n) / ds
     d_velocity_y = slope_limiter(velocity_y, state.n) / ds
     d_velocity = jnp.stack([d_velocity_x, d_velocity_y])
+    if enable_dye:
+        d_dye_density = slope_limiter(dye_density, state.n) / ds
 
     # trace forward
     divergence = d_velocity[0, 0] + d_velocity[1, 1]
@@ -68,6 +74,12 @@ def muscl_2d(
         - velocity_y * d_velocity_y[1]
         - d_pressure[1] / density
     )
+    if enable_dye:
+        dye_density_t = (
+            -velocity_x * d_dye_density[0]
+            - velocity_y * d_dye_density[1]
+            - dye_density * divergence
+        )
 
     # trace back
     for axis in range(2):
@@ -91,9 +103,16 @@ def muscl_2d(
         pressure_left = pressure + 0.5 * (dt * pressure_t + ds * d_pressure[axis])
         U_left = U + 0.5 * (dt * U_t + ds * dU[axis])
         V_left = V + 0.5 * (dt * V_t + ds * dV[axis])
+        if enable_dye:
+            dye_density_left = dye_density + 0.5 * (
+                dt * dye_density_t + ds * d_dye_density[axis]
+            )
+        else:
+            dye_density_left = None
 
         state_left = hydro.PrimitiveVariable(
             density=density_left,
+            dye_density=dye_density_left,
             velocity_x=U_left,
             velocity_y=V_left,
             pressure=pressure_left,
@@ -104,9 +123,17 @@ def muscl_2d(
         pressure_right = pressure + 0.5 * (dt * pressure_t - ds * d_pressure[axis])
         U_right = U + 0.5 * (dt * U_t - ds * dU[axis])
         V_right = V + 0.5 * (dt * V_t - ds * dV[axis])
+        if enable_dye:
+            dye_density_right = dye_density + 0.5 * (
+                dt * dye_density_t - ds * d_dye_density[axis]
+            )
+            dye_density_right = jnp.roll(dye_density_right, shift=-1, axis=axis)
+        else:
+            dye_density_right = None
 
         state_right = hydro.PrimitiveVariable(
             density=jnp.roll(density_right, shift=-1, axis=axis),
+            dye_density=dye_density_right,
             velocity_x=jnp.roll(U_right, shift=-1, axis=axis),
             velocity_y=jnp.roll(V_right, shift=-1, axis=axis),
             pressure=jnp.roll(pressure_right, shift=-1, axis=axis),
@@ -136,6 +163,14 @@ def muscl_2d(
                 flux.momentum_x - jnp.roll(flux.momentum_x, shift=1, axis=axis)
             )
 
+        if enable_dye:
+            dye_density -= dt_ds * (
+                flux.dye_density - jnp.roll(flux.dye_density, shift=1, axis=axis)
+            )
+            dye_concentration = dye_density / density
+        else:
+            dye_concentration = None
+
     return HydroState(
         n=state.n,
         ds=state.ds,
@@ -144,6 +179,7 @@ def muscl_2d(
         x=state.x,
         y=state.y,
         density=density,
+        dye_concentration=dye_concentration,
         momentum_x=momentum_u,
         momentum_y=momentum_y,
         total_energy=total_energy,

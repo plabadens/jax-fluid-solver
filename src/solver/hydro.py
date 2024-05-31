@@ -1,3 +1,4 @@
+import pickle
 import jax.numpy as jnp
 
 from jax import Array, jit
@@ -128,3 +129,17 @@ def hydrodynamic_flux(
             (conservative.total_energy + primitive.pressure) * primitive.velocity_x
         ),
     )
+
+
+def save_state(state: HydroState, filename: str) -> None:
+    """Save the hydro state to a file"""
+    with open(filename, "wb") as f:
+        pickle.dump(state, f)
+
+
+def load_state(filename: str) -> HydroState:
+    """Load the hydro state from a file"""
+    with open(filename, "rb") as f:
+        state = pickle.load(f)
+
+    return state

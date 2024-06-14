@@ -24,14 +24,10 @@
           targetPkgs = p: (with p; [
             pythonWithPkgs
 
-            cudaPkgs.cudatoolkit
-            cudaPkgs.cudnn
             stdenv.cc
             zlib
           ]);
           profile = ''
-            export CUDA_PATH=${cudaPkgs.cudatoolkit}
-
             export EXTRA_LDFLAGS="-L/lib -L/run/opengl-driver/lib"
             export EXTRA_CCFLAGS="-I/usr/include"
 

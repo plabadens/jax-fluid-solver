@@ -6,3 +6,7 @@ venv/
 
 # IDE
 .vscode/
+
+# Output files
+notebooks/*.pdf
+notebooks/*.pkl
